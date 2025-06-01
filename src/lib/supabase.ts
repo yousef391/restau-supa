@@ -29,7 +29,6 @@ export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonK
   },
   global: {
     headers: {
-      'Content-Type': 'application/json',
       'Accept': 'application/json',
       'apikey': supabaseAnonKey,
       'Authorization': `Bearer ${supabaseAnonKey}`,
@@ -465,6 +464,14 @@ export const getPopularItems = async (restaurantId: string, limit: number = 5) =
 
 // Logo management helpers
 export const uploadRestaurantLogo = async (file: File, restaurantId: string) => {
+  // Debug log
+  console.log('Uploading file:', file, 'Type:', file.type);
+
+  // Ensure file is a real image file
+  if (!(file instanceof File)) {
+    throw new Error('Invalid file object. Please select a real image file.');
+  }
+
   try {
     console.log('Starting logo upload for restaurant:', restaurantId);
 

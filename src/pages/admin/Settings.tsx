@@ -161,6 +161,16 @@ const Settings = () => {
     const file = event.target.files?.[0];
     if (!file || !restaurantId) return;
 
+    // Debug log
+    console.log('Selected file:', file, 'Type:', file.type);
+
+    // File type validation
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Only JPEG, PNG, and WebP images are allowed');
+      return;
+    }
+
     try {
       setUploadingLogo(true);
       setError(null);
@@ -353,7 +363,6 @@ const Settings = () => {
                     size={200}
                     level="H"
                     includeMargin={true}
-                    renderAs="canvas"
                   />
                 </div>
                 <div className="flex-1">
