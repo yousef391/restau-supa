@@ -27,58 +27,7 @@ export const supabase = createBrowserClient<Database>(supabaseUrl, supabaseAnonK
       },
     },
   },
-  global: {
-    headers: {
-      'Accept': 'application/json',
-      'apikey': supabaseAnonKey,
-      'Authorization': `Bearer ${supabaseAnonKey}`,
-      'Prefer': 'return=representation',
-    },
-  },
-  db: {
-    schema: 'public',
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
 });
-
-// Initialize session and update headers
-const initializeSession = async () => {
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (session?.access_token) {
-      supabase.rest.headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${session.access_token}`,
-        'Prefer': 'return=representation',
-      };
-    }
-  } catch (error) {
-    console.error('Error initializing session:', error);
-  }
-};
-
-// Listen for auth state changes
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    supabase.rest.headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'apikey': supabaseAnonKey,
-      'Authorization': `Bearer ${session.access_token}`,
-      'Prefer': 'return=representation',
-    };
-  }
-});
-
-// Initialize session on load
-initializeSession();
 
 // Auth helpers
 export const signIn = async (email: string, password: string) => {
@@ -326,13 +275,21 @@ export const getOrders = async (restaurantId: string) => {
   return { data, error };
 };
 
-export const updateOrderStatus = async (orderId: string, status: 'received' | 'preparing' | 'ready') => {
+export const updateOrderStatus = async (orderId: string, status: 'received' | 'preparing' | 'ready' | 'completed' | 'cancelled') => {
   const { data, error } = await supabase
     .from('orders')
-    .update({ status })
+    .update({ 
+      status,
+    })
     .eq('id', orderId)
     .select()
     .single();
+
+  if (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+
   return { data, error };
 };
 

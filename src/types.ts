@@ -23,6 +23,7 @@ export interface MenuItem {
   is_available: boolean;
   created_at: string;
   updated_at: string;
+  categories?: { name: string };
 }
 
 export interface Category {
@@ -38,13 +39,14 @@ export interface Category {
 export interface Order {
   id: string;
   restaurant_id: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
+  server_id: string | null;
+  table_number: number;
   status: 'received' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-  total_amount: number;
+  total: number;
   created_at: string;
   updated_at: string;
+  order_items?: OrderItem[];
+  items?: { id: string; name: string; quantity: number; price: number }[];
 }
 
 export interface OrderItem {

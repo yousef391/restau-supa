@@ -6,7 +6,7 @@ import type { Restaurant } from '../../types';
 import QRCodeGenerator from '../../components/restaurant/QRCodeGenerator';
 import Button from '../../components/ui/Button';
 import { QRCodeCanvas } from 'qrcode.react';
-import { Building2, Clock, Mail, MapPin, Phone, Store, Upload, X, QrCode, AlertCircle, Download, Facebook, Instagram, Map } from 'lucide-react';
+import { Building2, Clock, Mail, MapPin, Phone, Store, Upload, X, QrCode, AlertCircle, Download, Facebook, Instagram, Map, Users, Plus, Trash2, CheckCircle } from 'lucide-react';
 import { uploadRestaurantLogo, deleteRestaurantLogo, refreshLogoUrl, uploadRestaurantBanner, deleteRestaurantBanner } from '../../lib/supabase';
 
 interface RestaurantSettings {
@@ -31,6 +31,9 @@ const Settings = () => {
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const qrCodeRef = useRef<HTMLCanvasElement>(null);
+  const [servers, setServers] = useState([]);
+  const [showNewServerModal, setShowNewServerModal] = useState(false);
+  const [newServer, setNewServer] = useState({ name: '', email: '', password: '' });
   
   const { register, handleSubmit, reset, formState: { errors } } = useForm<RestaurantSettings>();
   
@@ -60,6 +63,15 @@ const Settings = () => {
       if (!restaurant) throw new Error('Restaurant not found');
 
       setRestaurantId(restaurant.id);
+
+      // Fetch servers
+      const { data: servers, error: serversError } = await supabase
+        .from('servers')
+        .select('*')
+        .eq('restaurant_id', restaurant.id);
+
+      if (serversError) throw serversError;
+      setServers(servers || []);
 
       // If there's a logo URL, refresh it
       if (restaurant.logo_url) {
@@ -314,6 +326,101 @@ const Settings = () => {
     if (!restaurant?.slug) return '';
     return `${window.location.origin}/menu/${restaurant.slug}`;
   };
+
+  const handleAddServer = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      if (!restaurantId) throw new Error('Restaurant ID not found');
+
+      // Use the new RPC function to create the server with a hashed password
+      const { data, error } = await supabase.rpc('create_server_with_password', {
+        p_restaurant_id: restaurantId,
+        p_name: newServer.name,
+        p_email: newServer.email,
+        p_password: newServer.password
+      });
+
+      if (error) throw error;
+
+      // The RPC returns the inserted server object, which might not include the password_hash
+      // We might need to re-fetch servers or assume the structure returned is sufficient
+      // For now, let's assume the returned data is the server object without the hash
+      setServers(prev => [...prev, data]);
+      setShowNewServerModal(false);
+      setNewServer({ name: '', email: '', password: '' });
+      setSuccess('Server added successfully');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add server');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResetServerPassword = async (serverId: string) => {
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      const newPassword = Math.random().toString(36).slice(-8); // Generate random password
+
+      // Hash the new password before updating
+      // Note: This requires the pgcrypto extension enabled in your Supabase database
+      const { error } = await supabase
+        .from('servers')
+        .update({
+          password_hash: await supabase.rpc('crypt', { 
+             p_password: newPassword, 
+             p_salt: await supabase.rpc('gen_salt', { 
+                p_type: 'bf' 
+             })
+          }) 
+        })
+        .eq('id', serverId);
+
+      if (error) throw error;
+
+      // We cannot display the hashed password, so we inform the user of the temporary password
+      setSuccess(`Server password reset successfully. New temporary password: ${newPassword}`);
+
+      // In a real application, you would securely communicate this temporary password,
+      // e.g., send it via email (using Supabase Edge Functions or a backend) and
+      // require the server to change it upon first login.
+
+    } catch (err) {
+      console.error('Error resetting password:', err);
+      setError(err instanceof Error ? err.message : 'Failed to reset server password');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteServer = async (serverId: string) => {
+    if (!confirm('Are you sure you want to remove this server?')) return;
+
+    try {
+      setLoading(true);
+      setError(null);
+      setSuccess(null);
+
+      const { error } = await supabase
+        .from('servers')
+        .delete()
+        .eq('id', serverId);
+
+      if (error) throw error;
+
+      setServers(prev => prev.filter(server => server.id !== serverId));
+      setSuccess('Server removed successfully');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to remove server');
+    } finally {
+      setLoading(false);
+    }
+  };
   
   if (loading) {
     return (
@@ -520,6 +627,127 @@ const Settings = () => {
             </div>
           </div>
           
+          {/* Server Management Section */}
+          <div className="mb-8">
+            <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+              <Users className="w-5 h-5 text-primary-600" />
+              Server Management
+            </h3>
+            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Manage Servers</h4>
+                    <p className="text-sm text-gray-500">Add and manage servers who can create orders</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNewServerModal(true)}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Server
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {servers.map(server => (
+                    <div
+                      key={server.id}
+                      className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
+                    >
+                      <div>
+                        <p className="font-medium">{server.name}</p>
+                        <p className="text-sm text-gray-500">{server.email}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleResetServerPassword(server.id)}
+                        >
+                          Reset Password
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700"
+                          onClick={() => handleDeleteServer(server.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* New Server Modal */}
+          {showNewServerModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-lg max-w-md w-full p-6">
+                <h2 className="text-xl font-bold mb-4">Add New Server</h2>
+                
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Name
+                    </label>
+                    <input
+                      type="text"
+                      value={newServer.name}
+                      onChange={(e) => setNewServer(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-md"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email
+                    </label>
+                    <input
+                      type="email"
+                      value={newServer.email}
+                      onChange={(e) => setNewServer(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-md"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Password
+                    </label>
+                    <input
+                      type="password"
+                      value={newServer.password}
+                      onChange={(e) => setNewServer(prev => ({ ...prev, password: e.target.value }))}
+                      className="w-full px-3 py-2 border rounded-md"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-4 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowNewServerModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddServer}
+                    disabled={!newServer.name || !newServer.email || !newServer.password}
+                  >
+                    Add Server
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2">
