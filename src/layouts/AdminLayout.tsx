@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Menu, 
@@ -8,9 +8,11 @@ import {
   LogOut,
   Store
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const AdminLayout: React.FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const menuItems = [
     { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -62,7 +64,14 @@ const AdminLayout: React.FC = () => {
           {/* Bottom Section */}
           <div className="p-4 border-t border-primary-700/30 space-y-2">
             <button
-              onClick={() => {/* Add sign out logic */}}
+              onClick={async () => {
+                const { error } = await supabase.auth.signOut();
+                if (error) {
+                  console.error('Error signing out:', error);
+                } else {
+                  navigate('/login');
+                }
+              }}
               className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-primary-100 hover:bg-primary-700/50 hover:shadow-md transition-all duration-200"
             >
               <LogOut className="w-4 h-4 flex-shrink-0" />
