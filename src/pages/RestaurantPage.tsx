@@ -250,261 +250,125 @@ const RestaurantPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <h1 className="text-3xl font-bold text-gray-900">{restaurant.name}</h1>
-          {restaurant.description && (
-            <p className="mt-2 text-gray-600">{restaurant.description}</p>
-          )}
-          <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
-            {restaurant.address && (
-              <div className="flex items-center gap-1">
-                <span>📍</span>
-                <span>{restaurant.address}</span>
-              </div>
-            )}
-            {restaurant.opening_hours && (
-              <div className="flex items-center gap-1">
-                <span>🕒</span>
-                <span>{restaurant.opening_hours}</span>
-              </div>
-            )}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+      {/* Banner */}
+      {restaurant.banner_url && (
+        <div className="relative h-72 w-full overflow-hidden">
+          {/* Blurred background */}
+          <div className="absolute inset-0">
+            <img
+              src={restaurant.banner_url}
+              alt=""
+              className="h-full w-full object-cover blur-xl scale-110 brightness-50"
+            />
           </div>
+          {/* Main image */}
+          <img
+            src={restaurant.banner_url}
+            alt={restaurant.name}
+            className="relative h-full w-full object-cover brightness-90"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-slate-900/40 to-transparent" />
         </div>
-      </div>
-
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {restaurant.menu_items.map((item) => (
-            <div
-              key={item.id}
-              className="overflow-hidden rounded-lg bg-white shadow"
-            >
-              {item.image_url && (
-                <img
-                  src={item.image_url}
-                  alt={item.name}
-                  className="h-48 w-full object-cover"
-                />
-              )}
-              <div className="p-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {item.name}
-                  </h3>
-                  <p className="text-lg font-medium text-primary-500">
-                    ${item.price.toFixed(2)}
-                  </p>
-                </div>
-                {item.description && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    {item.description}
-                  </p>
-                )}
-                <div className="mt-2">
-                  <span className="inline-flex items-center rounded-full bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700">
-                    {item.category}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </main>
-
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-          {/* Menu Section */}
-          <div className="lg:col-span-2">
-            {categories.map(category => (
-              <div key={category.id} className="mb-8">
-                <h2 className="mb-4 text-xl font-semibold">{category.name}</h2>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {menuItems
-                    .filter(item => item.category_id === category.id)
-                    .map(item => (
-                      <div
-                        key={item.id}
-                        className="rounded-lg border border-gray-200 p-4 shadow-sm"
-                      >
-                        <h3 className="font-medium">{item.name}</h3>
-                        {item.description && (
-                          <p className="mt-1 text-sm text-gray-600">{item.description}</p>
-                        )}
-                        <div className="mt-2 flex items-center justify-between">
-                          <span className="font-medium">${item.price.toFixed(2)}</span>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => removeFromCart(item.id)}
-                              className="rounded-md bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
-                              disabled={!cart[item.id]}
-                            >
-                              <Minus className="h-4 w-4" />
-                            </button>
-                            <span className="w-8 text-center">
-                              {cart[item.id] || 0}
-                            </span>
-                            <button
-                              onClick={() => addToCart(item.id)}
-                              className="rounded-md bg-blue-600 px-2 py-1 text-sm text-white hover:bg-blue-700"
-                            >
-                              <Plus className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Cart Section - Hidden on mobile */}
-          <div className="hidden lg:block lg:col-span-1">
-            <div className="rounded-lg border border-gray-200 p-4 shadow-sm sticky top-4">
-              <h2 className="mb-4 text-xl font-semibold">Your Order</h2>
-              {Object.entries(cart).length === 0 ? (
-                <p className="text-gray-600">Your cart is empty</p>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    {Object.entries(cart).map(([itemId, quantity]) => {
-                      const item = menuItems.find(i => i.id === itemId);
-                      if (!item) return null;
-                      return (
-                        <div key={itemId} className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-gray-600">
-                              ${item.price.toFixed(2)} x {quantity}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => removeFromCart(itemId)}
-                              className="rounded-md bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
-                            >
-                              -
-                            </button>
-                            <span>{quantity}</span>
-                            <button
-                              onClick={() => addToCart(itemId)}
-                              className="rounded-md bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
-                            >
-                              +
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <div className="mt-4 border-t pt-4">
-                    <div className="flex justify-between font-semibold">
-                      <span>Total:</span>
-                      <span>${getCartTotal().toFixed(2)}</span>
-                    </div>
-                  </div>
-
-                  <form onSubmit={handleOrderSubmit} className="mt-4 space-y-4">
-                    <div>
-                      <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">
-                        Name
-                      </label>
-                      <input
-                        type="text"
-                        id="customerName"
-                        value={orderForm.customerName}
-                        onChange={e => setOrderForm(prev => ({ ...prev, customerName: e.target.value }))}
-                        className={`mt-1 block w-full rounded-md border ${
-                          formErrors.customerName ? 'border-red-300' : 'border-gray-300'
-                        } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                        required
-                      />
-                      {formErrors.customerName && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.customerName}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        id="customerEmail"
-                        value={orderForm.customerEmail}
-                        onChange={e => setOrderForm(prev => ({ ...prev, customerEmail: e.target.value }))}
-                        className={`mt-1 block w-full rounded-md border ${
-                          formErrors.customerEmail ? 'border-red-300' : 'border-gray-300'
-                        } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                        required
-                      />
-                      {formErrors.customerEmail && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.customerEmail}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700">
-                        Phone
-                      </label>
-                      <input
-                        type="tel"
-                        id="customerPhone"
-                        value={orderForm.customerPhone}
-                        onChange={e => setOrderForm(prev => ({ ...prev, customerPhone: e.target.value }))}
-                        className={`mt-1 block w-full rounded-md border ${
-                          formErrors.customerPhone ? 'border-red-300' : 'border-gray-300'
-                        } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                        required
-                      />
-                      {formErrors.customerPhone && (
-                        <p className="mt-1 text-sm text-red-600">{formErrors.customerPhone}</p>
-                      )}
-                    </div>
-                    <button
-                      type="submit"
-                      disabled={orderStatus.status === 'loading'}
-                      className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {orderStatus.status === 'loading' ? 'Placing Order...' : 'Place Order'}
-                    </button>
-                  </form>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Floating Cart Button - Mobile Only */}
-      {Object.keys(cart).length > 0 && (
-        <button
-          onClick={() => setShowCart(true)}
-          className="fixed bottom-8 right-8 flex items-center gap-2 rounded-full bg-blue-600 px-6 py-3 text-white shadow-lg hover:bg-blue-700 lg:hidden"
-        >
-          <ShoppingCart className="h-6 w-6" />
-          <span className="font-medium">
-            {Object.values(cart).reduce((a, b) => a + b, 0)} items
-          </span>
-          <span className="font-bold">
-            ${getCartTotal().toFixed(2)}
-          </span>
-        </button>
       )}
 
-      {/* Cart Modal - Mobile Only */}
-      {showCart && (
-        <div className="fixed inset-0 z-50 overflow-y-auto lg:hidden">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setShowCart(false)} />
-            <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-              <button
-                onClick={() => setShowCart(false)}
-                className="absolute right-4 top-4 text-gray-400 hover:text-gray-500"
-              >
-                <X className="h-6 w-6" />
-              </button>
-              <h2 className="mb-4 text-2xl font-bold">Your Order</h2>
+      {/* Restaurant Info */}
+      <div className="mx-auto max-w-7xl px-4 -mt-20 sm:px-6 lg:px-8 relative z-10 py-6">
+        <div className="flex flex-col sm:flex-row items-start gap-6 sm:gap-8 bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-white/20">
+          {restaurant.logo_url && (
+            <img
+              src={restaurant.logo_url}
+              alt={`${restaurant.name} logo`}
+              className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl object-cover border-4 border-white shadow-2xl ring-4 ring-slate-100/50 flex-shrink-0"
+            />
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-4xl font-bold text-slate-900 mb-3 tracking-tight">
+              {restaurant.name}
+            </h1>
+            {restaurant.description && (
+              <p className="text-slate-600 text-sm mb-3 line-clamp-2">{restaurant.description}</p>
+            )}
+            <div className="mt-4 flex flex-wrap gap-4 text-sm text-gray-500">
+              {restaurant.address && (
+                <div className="flex items-center gap-1">
+                  <span>📍</span>
+                  <span>{restaurant.address}</span>
+                </div>
+              )}
+              {restaurant.opening_hours && (
+                <div className="flex items-center gap-1">
+                  <span>🕒</span>
+                  <span>{restaurant.opening_hours}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu and Cart Layout */}
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Menu Sections */}
+        <div className="lg:col-span-2">
+          {categories.map(category => {
+            const itemsInCategory = menuItems.filter(item => item.categoryId === category.id);
+
+            if (itemsInCategory.length === 0) return null; // Don't show empty categories
+
+            return (
+              <section key={category.id} className="mb-12">
+                <h2 className="text-2xl sm:text-3xl font-semibold text-slate-800 mb-6 border-b pb-3 border-slate-200">
+                  {category.name}
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+                  {itemsInCategory.map(item => (
+                    <div key={item.id} className="bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+                      {item.imageUrl && (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.name}
+                          className="w-full h-40 sm:h-48 object-cover"
+                        />
+                      )}
+                      <div className="p-4 flex-grow flex flex-col">
+                        <h3 className="text-lg sm:text-xl font-semibold text-slate-900 mb-2">{item.name}</h3>
+                        {item.description && (
+                          <p className="text-slate-600 text-sm mb-3 line-clamp-2">{item.description}</p>
+                        )}
+                        <div className="flex items-center justify-between mt-auto">
+                          <span className="text-lg font-bold text-primary-600">${item.price.toFixed(2)}</span>
+                          {cart[item.id] ? (
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => removeFromCart(item.id)} className="text-primary-600 hover:text-primary-800 p-1 rounded-full bg-primary-100"><Minus className="w-4 h-4" /></button>
+                              <span className="font-semibold text-slate-700">{cart[item.id]}</span>
+                              <button onClick={() => addToCart(item.id)} className="text-primary-600 hover:text-primary-800 p-1 rounded-full bg-primary-100"><Plus className="w-4 h-4" /></button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => addToCart(item.id)}
+                              className="bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
+                            >
+                              Add to Cart
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+        </div>
+
+        {/* Order Summary / Cart (Fixed on larger screens) */}
+        <div className="lg:col-span-1">
+          <div className="bg-white p-6 rounded-lg shadow-xl sticky top-8">
+            <h2 className="text-2xl font-bold mb-4">Your Order</h2>
+            {Object.keys(cart).length === 0 ? (
+              <p className="text-slate-600">Your cart is empty.</p>
+            ) : (
               <div className="space-y-4">
                 {Object.entries(cart).map(([itemId, quantity]) => {
                   const item = menuItems.find(i => i.id === itemId);
@@ -512,144 +376,207 @@ const RestaurantPage = () => {
                   return (
                     <div key={itemId} className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium">{item.name}</p>
-                        <p className="text-sm text-gray-600">
-                          ${item.price.toFixed(2)} x {quantity}
-                        </p>
+                        <p className="font-semibold text-slate-800">{item.name} x {quantity}</p>
+                        <p className="text-sm text-slate-600">${(item.price * quantity).toFixed(2)}</p>
                       </div>
-                      <div className="flex items-center space-x-2">
-                        <button
-                          onClick={() => removeFromCart(itemId)}
-                          className="rounded-md bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
-                        >
-                          -
-                        </button>
-                        <span>{quantity}</span>
-                        <button
-                          onClick={() => addToCart(itemId)}
-                          className="rounded-md bg-gray-200 px-2 py-1 text-sm hover:bg-gray-300"
-                        >
-                          +
-                        </button>
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => removeFromCart(item.id)} className="text-red-600 hover:text-red-800 p-1 rounded-full"><Minus className="w-4 h-4" /></button>
+                        <button onClick={() => addToCart(item.id)} className="text-green-600 hover:text-green-800 p-1 rounded-full"><Plus className="w-4 h-4" /></button>
                       </div>
                     </div>
                   );
                 })}
-              </div>
-              <div className="mt-4 border-t pt-4">
-                <div className="flex justify-between font-semibold">
-                  <span>Total:</span>
-                  <span>${getCartTotal().toFixed(2)}</span>
+                <div className="border-t pt-4 flex justify-between items-center">
+                  <span className="text-xl font-bold text-slate-800">Total:</span>
+                  <span className="text-xl font-bold text-primary-600">${getCartTotal().toFixed(2)}</span>
                 </div>
+                {/* Order Form */}
+                <form onSubmit={handleOrderSubmit} className="mt-6 space-y-4">
+                  <div>
+                    <label htmlFor="customerName" className="block text-sm font-medium text-slate-700">Name</label>
+                    <input
+                      type="text"
+                      name="customerName"
+                      id="customerName"
+                      value={orderForm.customerName}
+                      onChange={(e) => setOrderForm({...orderForm, customerName: e.target.value})}
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${formErrors.customerName ? 'border-red-500' : ''}`}
+                      required
+                    />
+                    {formErrors.customerName && <p className="mt-1 text-sm text-red-500">{formErrors.customerName}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="customerEmail" className="block text-sm font-medium text-slate-700">Email</label>
+                    <input
+                      type="email"
+                      name="customerEmail"
+                      id="customerEmail"
+                      value={orderForm.customerEmail}
+                      onChange={(e) => setOrderForm({...orderForm, customerEmail: e.target.value})}
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${formErrors.customerEmail ? 'border-red-500' : ''}`}
+                      required
+                    />
+                    {formErrors.customerEmail && <p className="mt-1 text-sm text-red-500">{formErrors.customerEmail}</p>}
+                  </div>
+                  <div>
+                    <label htmlFor="customerPhone" className="block text-sm font-medium text-slate-700">Phone</label>
+                    <input
+                      type="tel"
+                      name="customerPhone"
+                      id="customerPhone"
+                      value={orderForm.customerPhone}
+                      onChange={(e) => setOrderForm({...orderForm, customerPhone: e.target.value})}
+                      className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${formErrors.customerPhone ? 'border-red-500' : ''}`}
+                      required
+                    />
+                    {formErrors.customerPhone && <p className="mt-1 text-sm text-red-500">{formErrors.customerPhone}</p>}
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={Object.keys(cart).length === 0 || orderStatus.status === 'loading'}
+                  >
+                    {orderStatus.status === 'loading' ? 'Placing Order...' : 'Place Order'}
+                  </button>
+                </form>
               </div>
+            )}
+          </div>
+        </div>
+      </div>
 
-              <form onSubmit={handleOrderSubmit} className="mt-4 space-y-4">
-                <div>
-                  <label htmlFor="mobileCustomerName" className="block text-sm font-medium text-gray-700">
-                    Name
-                  </label>
-                  <input
-                    type="text"
-                    id="mobileCustomerName"
-                    value={orderForm.customerName}
-                    onChange={e => setOrderForm(prev => ({ ...prev, customerName: e.target.value }))}
-                    className={`mt-1 block w-full rounded-md border ${
-                      formErrors.customerName ? 'border-red-300' : 'border-gray-300'
-                    } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                    required
-                  />
-                  {formErrors.customerName && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.customerName}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="mobileCustomerEmail" className="block text-sm font-medium text-gray-700">
-                    Email
-                  </label>
-                  <input
-                    type="email"
-                    id="mobileCustomerEmail"
-                    value={orderForm.customerEmail}
-                    onChange={e => setOrderForm(prev => ({ ...prev, customerEmail: e.target.value }))}
-                    className={`mt-1 block w-full rounded-md border ${
-                      formErrors.customerEmail ? 'border-red-300' : 'border-gray-300'
-                    } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                    required
-                  />
-                  {formErrors.customerEmail && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.customerEmail}</p>
-                  )}
-                </div>
-                <div>
-                  <label htmlFor="mobileCustomerPhone" className="block text-sm font-medium text-gray-700">
-                    Phone
-                  </label>
-                  <input
-                    type="tel"
-                    id="mobileCustomerPhone"
-                    value={orderForm.customerPhone}
-                    onChange={e => setOrderForm(prev => ({ ...prev, customerPhone: e.target.value }))}
-                    className={`mt-1 block w-full rounded-md border ${
-                      formErrors.customerPhone ? 'border-red-300' : 'border-gray-300'
-                    } px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500`}
-                    required
-                  />
-                  {formErrors.customerPhone && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.customerPhone}</p>
-                  )}
-                </div>
-                <button
-                  type="submit"
-                  disabled={orderStatus.status === 'loading'}
-                  className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {orderStatus.status === 'loading' ? 'Placing Order...' : 'Place Order'}
-                </button>
-              </form>
+      {/* Floating Cart Button for Mobile */}
+      {Object.keys(cart).length > 0 && !showCart && (
+        <button
+          className="fixed bottom-6 right-6 lg:hidden bg-green-600 text-white p-4 rounded-full shadow-lg hover:bg-green-700 transition-colors z-40"
+          onClick={() => setShowCart(true)}
+          aria-label="Open Cart"
+        >
+          <ShoppingCart className="w-6 h-6" />
+          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">{Object.values(cart).reduce((sum, quantity) => sum + quantity, 0)}</span>
+        </button>
+      )}
+
+      {/* Cart Modal for Mobile */}
+      {showCart && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 lg:hidden">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-auto p-6 transform transition-all duration-300 ease-out scale-100 opacity-100">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">Your Order</h2>
+              <button onClick={() => setShowCart(false)} className="text-gray-600 hover:text-gray-900 p-1 rounded-full" aria-label="Close Cart">
+                <X className="w-6 h-6" />
+              </button>
             </div>
+            {
+              Object.keys(cart).length === 0 ? (
+                <p className="text-slate-600">Your cart is empty.</p>
+              ) : (
+                <div className="space-y-4">
+                  {Object.entries(cart).map(([itemId, quantity]) => {
+                    const item = menuItems.find(i => i.id === itemId);
+                    if (!item) return null;
+                    return (
+                      <div key={itemId} className="flex items-center justify-between">
+                        <div>
+                          <p className="font-semibold text-slate-800">{item.name} x {quantity}</p>
+                          <p className="text-sm text-slate-600">${(item.price * quantity).toFixed(2)}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => removeFromCart(item.id)} className="text-red-600 hover:text-red-800 p-1 rounded-full"><Minus className="w-4 h-4" /></button>
+                          <button onClick={() => addToCart(item.id)} className="text-green-600 hover:text-green-800 p-1 rounded-full"><Plus className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  <div className="border-t pt-4 flex justify-between items-center">
+                    <span className="text-xl font-bold text-slate-800">Total:</span>
+                    <span className="text-xl font-bold text-primary-600">${getCartTotal().toFixed(2)}</span>
+                  </div>
+                  {/* Order Form */}
+                  <form onSubmit={handleOrderSubmit} className="mt-6 space-y-4">
+                    <div>
+                      <label htmlFor="customerName" className="block text-sm font-medium text-slate-700">Name</label>
+                      <input
+                        type="text"
+                        name="customerName"
+                        id="customerName"
+                        value={orderForm.customerName}
+                        onChange={(e) => setOrderForm({...orderForm, customerName: e.target.value})}
+                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${formErrors.customerName ? 'border-red-500' : ''}`}
+                        required
+                      />
+                      {formErrors.customerName && <p className="mt-1 text-sm text-red-500">{formErrors.customerName}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="customerEmail" className="block text-sm font-medium text-slate-700">Email</label>
+                      <input
+                        type="email"
+                        name="customerEmail"
+                        id="customerEmail"
+                        value={orderForm.customerEmail}
+                        onChange={(e) => setOrderForm({...orderForm, customerEmail: e.target.value})}
+                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${formErrors.customerEmail ? 'border-red-500' : ''}`}
+                        required
+                      />
+                      {formErrors.customerEmail && <p className="mt-1 text-sm text-red-500">{formErrors.customerEmail}</p>}
+                    </div>
+                    <div>
+                      <label htmlFor="customerPhone" className="block text-sm font-medium text-slate-700">Phone</label>
+                      <input
+                        type="tel"
+                        name="customerPhone"
+                        id="customerPhone"
+                        value={orderForm.customerPhone}
+                        onChange={(e) => setOrderForm({...orderForm, customerPhone: e.target.value})}
+                        className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm ${formErrors.customerPhone ? 'border-red-500' : ''}`}
+                        required
+                      />
+                      {formErrors.customerPhone && <p className="mt-1 text-sm text-red-500">{formErrors.customerPhone}</p>}
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                      disabled={Object.keys(cart).length === 0 || orderStatus.status === 'loading'}
+                    >
+                      {orderStatus.status === 'loading' ? 'Placing Order...' : 'Place Order'}
+                    </button>
+                  </form>
+                </div>
+              )
+            }
           </div>
         </div>
       )}
 
       {/* Order Status Modal */}
       {orderStatus.status !== 'idle' && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
-          <div className="flex min-h-screen items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black bg-opacity-50" onClick={() => setOrderStatus({ status: 'idle' })} />
-            <div className="relative w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-              <div className="text-center">
-                {orderStatus.status === 'loading' && (
-                  <div className="mx-auto h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                )}
-                {orderStatus.status === 'success' && (
-                  <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
-                )}
-                {orderStatus.status === 'error' && (
-                  <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
-                )}
-                <h3 className="mt-4 text-lg font-medium text-gray-900">
-                  {orderStatus.status === 'loading' && 'Placing your order...'}
-                  {orderStatus.status === 'success' && 'Order Placed Successfully!'}
-                  {orderStatus.status === 'error' && 'Order Failed'}
-                </h3>
-                <p className="mt-2 text-sm text-gray-500">
-                  {orderStatus.message}
-                </p>
-                {orderStatus.status === 'success' && orderStatus.orderId && (
-                  <p className="mt-2 text-sm text-gray-500">
-                    Order ID: {orderStatus.orderId}
-                  </p>
-                )}
-                <div className="mt-6">
-                  <button
-                    onClick={() => setOrderStatus({ status: 'idle' })}
-                    className="inline-flex justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                  >
-                    {orderStatus.status === 'success' ? 'Done' : 'Close'}
-                  </button>
-                </div>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-sm mx-auto p-6 text-center">
+            {orderStatus.status === 'loading' && (
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary-600 mb-4" />
+                <p className="text-lg font-semibold">Placing Order...</p>
               </div>
-            </div>
+            )}
+            {orderStatus.status === 'success' && (
+              <div className="flex flex-col items-center">
+                <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
+                <p className="text-lg font-semibold mb-2">{orderStatus.message || 'Order Successful!'}</p>
+                {orderStatus.orderId && <p className="text-sm text-gray-600">Order ID: {orderStatus.orderId}</p>}
+              </div>
+            )}
+            {orderStatus.status === 'error' && (
+              <div className="flex flex-col items-center">
+                <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
+                <p className="text-lg font-semibold mb-2">{orderStatus.message || 'Order Failed!'}</p>
+              </div>
+            )}
+            <button
+              onClick={() => setOrderStatus({status: 'idle'})}
+              className="mt-6 bg-primary-600 text-white px-4 py-2 rounded-md hover:bg-primary-700 transition-colors"
+            >
+              Close
+            </button>
           </div>
         </div>
       )}

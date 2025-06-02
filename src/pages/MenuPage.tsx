@@ -53,6 +53,11 @@ const MenuPage = () => {
     customerEmail: '',
     customerPhone: '',
   });
+  const [formErrors, setFormErrors] = useState({
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+  });
 
   useEffect(() => {
     fetchRestaurantData();
@@ -231,13 +236,13 @@ const MenuPage = () => {
       )}
 
       {/* Restaurant Info */}
-      <div className="mx-auto max-w-7xl px-4 -mt-20 sm:px-6 lg:px-8 relative z-10">
-        <div className="flex items-start gap-6 bg-white/80 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/20">
+      <div className="mx-auto max-w-7xl px-4 -mt-20 sm:px-6 lg:px-8 relative z-10 py-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 sm:gap-8 bg-white/80 backdrop-blur-sm p-4 sm:p-6 rounded-2xl shadow-xl border border-white/20 text-center sm:text-left">
           {restaurant.logo_url && (
             <img
               src={restaurant.logo_url}
-              alt={restaurant.name}
-              className="h-32 w-32 rounded-2xl object-cover border-4 border-white shadow-2xl ring-4 ring-slate-100/50 flex-shrink-0"
+              alt={`${restaurant.name} logo`}
+              className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl object-cover border-4 border-white shadow-2xl ring-4 ring-slate-100/50 flex-shrink-0"
             />
           )}
           <div className="flex-1 min-w-0">
@@ -252,7 +257,7 @@ const MenuPage = () => {
               </div>
             )}
             {(restaurant.facebook_url || restaurant.instagram_url || restaurant.google_maps_url) && (
-              <div className="mt-4 flex items-center gap-4">
+              <div className="mt-4 flex flex-wrap justify-center sm:justify-start gap-3 sm:gap-4 text-sm text-gray-500">
                 {restaurant.facebook_url && (
                   <a
                     href={restaurant.facebook_url}
@@ -295,7 +300,7 @@ const MenuPage = () => {
       {/* Categories Selection */}
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-12 mb-8">
         <h2 className="text-2xl font-semibold text-slate-900 mb-6">Menu Categories</h2>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3">
           <button
             className={`group relative px-8 py-4 rounded-2xl transition-all duration-300 flex items-center gap-4 ${
               selectedCategory === null
@@ -360,7 +365,7 @@ const MenuPage = () => {
             {filteredItems.length} items
           </span>
         </div>
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr">
           {filteredItems.map((item) => (
             <div
               key={item.id}
@@ -494,9 +499,10 @@ const MenuPage = () => {
                     id="customerName"
                     value={orderForm.customerName}
                     onChange={e => setOrderForm(prev => ({ ...prev, customerName: e.target.value }))}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formErrors.customerName ? 'border-red-500' : ''}`}
                     required
                   />
+                  {formErrors.customerName && <p className="mt-1 text-sm text-red-500">{formErrors.customerName}</p>}
                 </div>
                 <div>
                   <label htmlFor="customerEmail" className="block text-sm font-medium text-gray-700">
@@ -507,9 +513,10 @@ const MenuPage = () => {
                     id="customerEmail"
                     value={orderForm.customerEmail}
                     onChange={e => setOrderForm(prev => ({ ...prev, customerEmail: e.target.value }))}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formErrors.customerEmail ? 'border-red-500' : ''}`}
                     required
                   />
+                  {formErrors.customerEmail && <p className="mt-1 text-sm text-red-500">{formErrors.customerEmail}</p>}
                 </div>
                 <div>
                   <label htmlFor="customerPhone" className="block text-sm font-medium text-gray-700">
@@ -520,9 +527,10 @@ const MenuPage = () => {
                     id="customerPhone"
                     value={orderForm.customerPhone}
                     onChange={e => setOrderForm(prev => ({ ...prev, customerPhone: e.target.value }))}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                    className={`mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 ${formErrors.customerPhone ? 'border-red-500' : ''}`}
                     required
                   />
+                  {formErrors.customerPhone && <p className="mt-1 text-sm text-red-500">{formErrors.customerPhone}</p>}
                 </div>
                 <button
                   type="submit"
