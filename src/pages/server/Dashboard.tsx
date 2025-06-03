@@ -217,13 +217,37 @@ const ServerDashboard = () => {
         throw error;
       }
 
-      setShowNewOrderModal(false);
-      setTableNumber('');
-      setSelectedItems([]);
-      setSelectedCategory(null);
-      
-      // Re-fetch orders using the current server data
-      await fetchOrders(server);
+      // Assuming the RPC now returns the ticket data in 'data'
+      const ticketData = data; // The JSON object returned by the RPC
+
+       setShowNewOrderModal(false);
+       setTableNumber('');
+       setSelectedItems([]);
+       setSelectedCategory(null);
+
+       if (ticketData && ticketData.order) {
+         // Add the new order to the orders state to update the list immediately
+         // We need to format the new order data to match the structure expected by the orders state
+         const newOrder = {
+           ...ticketData.order,
+           order_items: ticketData.order.items.map((item: any) => ({
+              id: item.menu_item_id, // Assuming the RPC returns menu_item_id in the items array
+              menu_item_id: item.menu_item_id, // Keep both for consistency with fetchOrders structure
+              quantity: item.quantity,
+              price: item.price,
+              menu_items: { name: item.name } // Match the nested structure from fetchOrders
+           }))
+         };
+         setOrders(prevOrders => [newOrder, ...prevOrders]); // Add new order to the top of the list
+
+         // Process and display ticket data for printing
+         displayTicketForPrinting(ticketData);
+       } else {
+          console.error('Order creation successful, but received invalid ticket data:', ticketData);
+          setError('Order created, but failed to get ticket data.');
+          // Still try to re-fetch orders if ticket data is invalid but order was created
+          await fetchOrders(server);
+       }
 
     } catch (err) {
       console.error('Order creation error:', err);
@@ -409,6 +433,77 @@ const ServerDashboard = () => {
     }
     return false; // Should not reach here
   });
+
+  const displayTicketForPrinting = (ticketData: any) => {
+    if (!ticketData || !ticketData.restaurant || !ticketData.order) {
+      console.error('Invalid ticket data received:', ticketData);
+      setError('Failed to generate ticket data.');
+      return;
+    }
+
+    const { restaurant, order } = ticketData;
+
+    // Create HTML content for the ticket
+    const ticketHtml = `
+      <html>
+      <head>
+        <title>Order Ticket #${order.id}</title>
+        <style>
+          body { font-family: ' monospace', monospace; line-height: 1.5; width: 80mm; margin: 0 auto; padding: 10mm; }
+          .header { text-align: center; margin-bottom: 10mm; }
+          .restaurant-name { font-size: 1.5em; font-weight: bold; }
+          .order-details { margin-bottom: 10mm; border-top: 1px dashed #000; border-bottom: 1px dashed #000; padding: 5mm 0; }
+          .item { display: flex; justify-content: space-between; }
+          .item .name { flex-grow: 1; margin-right: 5mm; }
+          .total { text-align: right; font-size: 1.2em; font-weight: bold; margin-top: 10mm; border-top: 1px dashed #000; padding-top: 5mm; }
+          .footer { text-align: center; margin-top: 10mm; font-size: 0.9em; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="restaurant-name">${restaurant.name || 'Restaurant Name'}</div>
+          ${restaurant.address ? `<div class="address">${restaurant.address}</div>` : ''}
+          ${restaurant.phone_number ? `<div class="phone">${restaurant.phone_number}</div>` : ''}
+        </div>
+        <div class="order-details">
+          <div>Order ID: ${order.id.substring(0, 8).toUpperCase()}</div>
+          <div>Table Number: ${order.table_number}</div>
+          <div>Date: ${new Date(order.created_at).toLocaleString()}</div>
+        </div>
+        <div class="items">
+          ${order.items.map((item: any) => `
+            <div class="item">
+              <span class="quantity">${item.quantity}x</span>
+              <span class="name">${item.name}</span>
+              <span class="price">${formatPrice(item.subtotal)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="total">Total: ${formatPrice(order.total)}</div>
+        <div class="footer">
+          Thank you for your order!
+        </div>
+      </body>
+      </html>
+    `;
+
+    // Open a new window and write the HTML content
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.open();
+      printWindow.document.write(ticketHtml);
+      printWindow.document.close();
+
+      // Wait for content to load and then print
+      printWindow.onload = () => {
+        printWindow.print();
+        // Optional: Close the window after printing
+        // printWindow.close();
+      };
+    } else {
+      setError('Could not open print window. Please allow pop-ups for this site.');
+    }
+  };
 
   if (loading) {
     return (
