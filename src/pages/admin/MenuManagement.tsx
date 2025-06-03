@@ -55,7 +55,7 @@ export default function MenuManagement() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
   const [newItem, setNewItem] = useState<NewItem>({
@@ -71,6 +71,11 @@ export default function MenuManagement() {
     icon: "food",
   });
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+  const [showSuccessItemModal, setShowSuccessItemModal] = useState(false);
+  const [showSuccessCategoryModal, setShowSuccessCategoryModal] =
+    useState(false);
 
   useEffect(() => {
     if (!session) {
@@ -179,7 +184,6 @@ export default function MenuManagement() {
       ]);
 
       if (error) throw error;
-
       await fetchMenuItems(restaurant.id);
       setNewItem({
         name: "",
@@ -190,20 +194,29 @@ export default function MenuManagement() {
         available: true,
       });
       setShowAddItemModal(false);
-      alert("Menu item added successfully");
+      setShowSuccessItemModal(true);
+
+      // Hide success message after 2.5 seconds
+      setTimeout(() => {
+        setShowSuccessItemModal(false);
+      }, 2500);
     } catch (err) {
       console.error("Error adding menu item:", err);
       alert(err instanceof Error ? err.message : "Failed to add menu item");
     }
   };
-
   const handleDeleteItem = async (itemId: string) => {
     if (!session) {
       alert("No active session");
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this item?")) {
+    setItemToDelete(itemId);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!session || !itemToDelete) {
       return;
     }
 
@@ -216,17 +229,37 @@ export default function MenuManagement() {
 
       if (restaurantError) throw restaurantError;
       if (!restaurant) throw new Error("Restaurant not found");
-
       const { error } = await supabase
         .from("menu_items")
         .delete()
-        .eq("id", itemId)
+        .eq("id", itemToDelete)
         .eq("restaurant_id", restaurant.id);
-
       if (error) throw error;
-
       await fetchMenuItems(restaurant.id);
-      alert("Menu item deleted successfully");
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+
+      // Show success notification
+      const notification = document.createElement("div");
+      notification.className =
+        "fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 animate-slideUp bg-white rounded-xl shadow-xl p-4 flex items-center gap-3 border-l-4 border-green-500";
+      notification.innerHTML = `
+        <div class="bg-green-100 rounded-full p-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-medium text-gray-800">Success!</h3>
+          <p class="text-sm text-gray-600">Menu item has been deleted successfully</p>
+        </div>
+      `;
+      document.body.appendChild(notification);
+
+      // Remove notification after 2.5 seconds
+      setTimeout(() => {
+        notification.remove();
+      }, 2500);
     } catch (err) {
       console.error("Error deleting menu item:", err);
       alert(err instanceof Error ? err.message : "Failed to delete menu item");
@@ -274,11 +307,15 @@ export default function MenuManagement() {
       ]);
 
       if (error) throw error;
-
       await fetchCategories(restaurant.id);
       setNewCategory({ name: "", icon: "food" });
       setShowAddCategoryModal(false);
-      alert("Category added successfully");
+      setShowSuccessCategoryModal(true);
+
+      // Hide success message after 2.5 seconds
+      setTimeout(() => {
+        setShowSuccessCategoryModal(false);
+      }, 2500);
     } catch (err) {
       console.error("Error adding category:", err);
       alert(err instanceof Error ? err.message : "Failed to add category");
@@ -293,17 +330,17 @@ export default function MenuManagement() {
 
       const fileExt = file.name.split(".").pop();
       const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `menu-items/${fileName}`;
+      const filePath = `b1887de3-d005-40ac-a989-ba159fedc812/menu-items/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from("images")
+        .from("restaurant-images")
         .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
       const {
         data: { publicUrl },
-      } = supabase.storage.from("images").getPublicUrl(filePath);
+      } = supabase.storage.from("restaurant-images").getPublicUrl(filePath);
 
       setNewItem({ ...newItem, image_url: publicUrl });
     } catch (error) {
@@ -370,14 +407,14 @@ export default function MenuManagement() {
           </h2>
           <div className="flex flex-wrap gap-3">
             <button
-              className={`px-6 py-3 rounded-full transition-all duration-200 ${
+              className={`group relative px-8 py-4 rounded-2xl transition-all duration-300 flex items-center gap-4 ${
                 selectedCategory === "all"
-                  ? "bg-blue-500 text-white shadow-lg scale-105"
-                  : "bg-white text-gray-700 hover:bg-blue-50"
+                  ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-xl"
+                  : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-100"
               }`}
               onClick={() => setSelectedCategory("all")}
             >
-              All Items
+              <span className="font-semibold text-lg">All Items</span>
             </button>
             {categories.map((category) => {
               const IconComponent =
@@ -483,12 +520,11 @@ export default function MenuManagement() {
             )}
           </div>
         </div>
-      </div>
-
+      </div>{" "}
       {/* Add Item Modal */}
       {showAddItemModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md my-12 ">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               Add New Menu Item
             </h2>
@@ -528,7 +564,8 @@ export default function MenuManagement() {
                     type="number"
                     step="1"
                     min="0"
-                    className="w-full p-2 pl-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="500 DZ"
+                    className="w-full p-2  border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     value={Math.round(newItem.price) || ""}
                     onChange={(e) =>
                       setNewItem({
@@ -537,9 +574,6 @@ export default function MenuManagement() {
                       })
                     }
                   />
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                    DZD
-                  </span>
                 </div>
               </div>
               <div>
@@ -630,12 +664,11 @@ export default function MenuManagement() {
             </div>
           </div>
         </div>
-      )}
-
+      )}{" "}
       {/* Add Category Modal */}
       {showAddCategoryModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md my-12 mt-16">
             <h2 className="text-xl font-semibold mb-4 text-gray-800">
               Add New Category
             </h2>
@@ -689,20 +722,116 @@ export default function MenuManagement() {
                   Preview
                 </span>
               </div>
+
               <div className="flex gap-3">
                 <button
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:from-green-600 hover:to-green-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl"
+                  className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200"
                   onClick={handleAddCategory}
                 >
-                  Add Category
+                  Add Catagory
                 </button>
                 <button
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-300 font-semibold shadow hover:shadow-md"
+                  className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200"
                   onClick={() => setShowAddCategoryModal(false)}
                 >
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-sm transform transition-all duration-300 scale-100 animate-fadeIn">
+            <div className="text-center mb-5">
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-4">
+                <Trash2 className="h-10 w-10 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">
+                Delete Menu Item
+              </h3>
+              <p className="text-gray-600">
+                Are you sure you want to delete this menu item? This action
+                cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:from-red-600 hover:to-red-700 transition-colors duration-200 font-medium shadow-md hover:shadow-lg"
+                onClick={confirmDeleteItem}
+              >
+                Delete
+              </button>
+              <button
+                className="flex-1 px-4 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors duration-200 font-medium"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setItemToDelete(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Success Item Modal */}
+      {showSuccessItemModal && (
+        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 animate-slideUp">
+          <div className="bg-white rounded-xl shadow-xl p-4 flex items-center gap-3 border-l-4 border-green-500">
+            <div className="bg-green-100 rounded-full p-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-800">Success!</h3>
+              <p className="text-sm text-gray-600">
+                Menu item has been added successfully
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Success Category Modal */}
+      {showSuccessCategoryModal && (
+        <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 z-50 animate-slideUp">
+          <div className="bg-white rounded-xl shadow-xl p-4 flex items-center gap-3 border-l-4 border-green-500">
+            <div className="bg-green-100 rounded-full p-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6 text-green-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-800">Success!</h3>
+              <p className="text-sm text-gray-600">
+                Category has been added successfully
+              </p>
             </div>
           </div>
         </div>
