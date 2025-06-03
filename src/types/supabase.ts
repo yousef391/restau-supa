@@ -112,7 +112,7 @@ export interface Database {
         Row: {
           id: string
           created_at: string
-          status: 'received' | 'preparing' | 'ready'
+          status: 'received'  | 'completed' 
           total: number
           customer_name: string | null
           customer_phone: string | null

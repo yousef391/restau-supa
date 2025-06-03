@@ -3,6 +3,8 @@ export interface Restaurant {
   name: string;
   slug: string;
   description: string | null;
+  logo_url: string | null;
+  banner_url: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
@@ -42,7 +44,7 @@ export interface Order {
   restaurant_id: string;
   server_id: string | null;
   table_number: number;
-  status: 'received' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  status: 'received' | 'completed' ;
   total: number;
   created_at: string;
   updated_at: string;
@@ -58,4 +60,13 @@ export interface OrderItem {
   price: number;
   created_at: string;
   updated_at: string;
-} 
+}
+
+export interface StaffMember {
+  id: string;
+  email: string;
+  restaurant_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+}
