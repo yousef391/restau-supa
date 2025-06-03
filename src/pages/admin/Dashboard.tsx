@@ -18,12 +18,40 @@ interface DailySales {
   order_count: number;
 }
 
+interface TopItem {
+  item_id: string;
+  item_name: string;
+  total_quantity_ordered: number;
+}
+
 const Dashboard = () => {
   const { session } = useAuth();
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
   const [dailySales, setDailySales] = useState<DailySales[]>([]);
+  const [topItems, setTopItems] = useState<TopItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchTopItems = async (restaurantId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_top_menu_items_by_restaurant', {
+        p_restaurant_id: restaurantId,
+        p_limit: 5 // Fetch top 5 items
+      });
+
+      if (error) {
+        console.error('Error fetching top items:', error);
+        // setError('Failed to load top items.'); // Consider if you want to show a separate error
+        setTopItems([]);
+      } else {
+        // The RPC returns a table, which supabase-js typically maps to an array of objects
+        setTopItems(data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching top items:', err);
+      setTopItems([]);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -44,14 +72,7 @@ const Dashboard = () => {
         if (restaurantError) throw restaurantError;
         if (!restaurantData) throw new Error("No restaurant found");
 
-        setRestaurant({
-          id: restaurantData.id,
-          name: restaurantData.name,
-          slug: restaurantData.slug,
-          logoUrl: restaurantData.logo_url,
-          description: restaurantData.description,
-          ownerId: restaurantData.owner_id,
-        });
+        setRestaurant(restaurantData as Restaurant);
 
         // Get all orders
         const { data: orders, error: ordersError } = await supabase
@@ -85,6 +106,10 @@ const Dashboard = () => {
           );
 
         setDailySales(allDays);
+
+        // Fetch top items after getting the restaurant ID
+        await fetchTopItems(restaurantData.id);
+
       } catch (err: any) {
         console.error("Error fetching dashboard data:", err);
         setError(err.message);
@@ -221,6 +246,26 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Top 5 Items */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <h2 className="text-lg font-medium text-gray-900 mb-4">Top 5 Most Ordered Items</h2>
+        {topItems.length === 0 ? (
+          <p className="text-gray-500 text-sm">No order data available yet.</p>
+        ) : (
+          <ul className="divide-y divide-gray-200">
+            {topItems.map((item, index) => (
+              <li key={item.item_id} className="py-3 flex items-center justify-between">
+                <div className="flex items-center">
+                  <span className="text-sm font-semibold text-gray-700 mr-3">#{index + 1}</span>
+                  <span className="text-sm text-gray-900">{item.item_name}</span>
+                </div>
+                <span className="text-sm font-medium text-primary-600">{item.total_quantity_ordered} ordered</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       {/* Daily History Table */}
