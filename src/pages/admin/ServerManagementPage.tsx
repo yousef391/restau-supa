@@ -12,6 +12,7 @@ const ServerManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAddServerModalOpen, setIsAddServerModalOpen] = useState(false);
+  const [newServerName, setNewServerName] = useState('');
   const [newServerEmail, setNewServerEmail] = useState('');
   const [newServerPassword, setNewServerPassword] = useState('');
 
@@ -42,14 +43,37 @@ const ServerManagementPage: React.FC = () => {
     setLoading(true);
     setError(null);
 
-    if (!newServerEmail || !newServerPassword) {
-      setError('Email and password are required.');
+    if (!newServerName || !newServerEmail || !newServerPassword) {
+      setError('Name, email, and password are required.');
+      setLoading(false);
+      return;
+    }
+
+    // Get the current restaurant ID from the user's session
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      setError('You must be logged in to add servers.');
+      setLoading(false);
+      return;
+    }
+
+    // Get the restaurant ID for the current user
+    const { data: restaurantData, error: restaurantError } = await supabase
+      .from('restaurants')
+      .select('id')
+      .eq('owner_id', user.id)
+      .single();
+
+    if (restaurantError || !restaurantData) {
+      setError('Could not find restaurant for the current user.');
       setLoading(false);
       return;
     }
 
     // Call the RPC to create the server with password hashing
     const { data, error } = await supabase.rpc('create_server_with_password', {
+      p_restaurant_id: restaurantData.id,
+      p_name: newServerName,
       server_email: newServerEmail,
       server_password: newServerPassword,
     });
@@ -58,9 +82,8 @@ const ServerManagementPage: React.FC = () => {
       console.error('Error adding server:', error);
       setError(`Failed to add server: ${error.message}`);
     } else {
-      // Assuming the RPC returns the new server data or a success indicator
-      // You might need to adjust this based on the actual RPC response
       console.log('Server added successfully:', data);
+      setNewServerName('');
       setNewServerEmail('');
       setNewServerPassword('');
       setIsAddServerModalOpen(false);
@@ -186,6 +209,20 @@ const ServerManagementPage: React.FC = () => {
           <div className="relative p-5 border w-96 shadow-lg rounded-md bg-white">
             <h3 className="text-lg font-bold mb-4">Add New Server</h3>
             <form onSubmit={handleAddServer}>
+              <div className="mb-4">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="name">
+                  Name
+                </label>
+                <input
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  id="name"
+                  type="text"
+                  placeholder="Server Name"
+                  value={newServerName}
+                  onChange={(e) => setNewServerName(e.target.value)}
+                  required
+                />
+              </div>
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                   Email
