@@ -31,6 +31,7 @@ export interface Category {
   restaurant_id: string;
   name: string;
   description: string | null;
+  icon_id: string | null;
   display_order: number;
   created_at: string;
   updated_at: string;

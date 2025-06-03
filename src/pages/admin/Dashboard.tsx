@@ -1,9 +1,16 @@
-import { useState, useEffect } from 'react';
-import { AlertCircle, TrendingUp, TrendingDown, DollarSign, ShoppingBag } from 'lucide-react';
-import { Restaurant } from '../../types';
-import { formatPrice } from '../../utils/currency';
-import { supabase } from '../../lib/supabase';
-import { useAuth } from '../../contexts/AuthContext';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect } from "react";
+import {
+  AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  ShoppingBag,
+} from "lucide-react";
+import { Restaurant } from "../../types";
+import { formatPrice } from "../../utils/currency";
+import { supabase } from "../../lib/supabase";
+import { useAuth } from "../../contexts/AuthContext";
 
 interface DailySales {
   date: string;
@@ -22,20 +29,20 @@ const Dashboard = () => {
     const fetchData = async () => {
       try {
         if (!session) {
-          setError('No active session');
+          setError("No active session");
           setIsLoading(false);
           return;
         }
 
         // Get restaurant
         const { data: restaurantData, error: restaurantError } = await supabase
-          .from('restaurants')
-          .select('*')
-          .eq('owner_id', session.user.id)
+          .from("restaurants")
+          .select("*")
+          .eq("owner_id", session.user.id)
           .single();
 
         if (restaurantError) throw restaurantError;
-        if (!restaurantData) throw new Error('No restaurant found');
+        if (!restaurantData) throw new Error("No restaurant found");
 
         setRestaurant({
           id: restaurantData.id,
@@ -48,18 +55,18 @@ const Dashboard = () => {
 
         // Get all orders
         const { data: orders, error: ordersError } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('restaurant_id', restaurantData.id)
-          .order('created_at', { ascending: false });
+          .from("orders")
+          .select("*")
+          .eq("restaurant_id", restaurantData.id)
+          .order("created_at", { ascending: false });
 
         if (ordersError) throw ordersError;
 
         // Calculate daily totals
         const salesMap = new Map<string, { total: number; count: number }>();
-        
-        orders?.forEach(order => {
-          const date = new Date(order.created_at).toISOString().split('T')[0];
+
+        orders?.forEach((order) => {
+          const date = new Date(order.created_at).toISOString().split("T")[0];
           const current = salesMap.get(date) || { total: 0, count: 0 };
           current.total += order.total;
           current.count += 1;
@@ -67,15 +74,19 @@ const Dashboard = () => {
         });
 
         // Convert map to array and sort by date
-        const allDays = Array.from(salesMap.entries()).map(([date, data]) => ({
-          date,
-          total_amount: data.total,
-          order_count: data.count
-        })).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        const allDays = Array.from(salesMap.entries())
+          .map(([date, data]) => ({
+            date,
+            total_amount: data.total,
+            order_count: data.count,
+          }))
+          .sort(
+            (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          );
 
         setDailySales(allDays);
       } catch (err: any) {
-        console.error('Error fetching dashboard data:', err);
+        console.error("Error fetching dashboard data:", err);
         setError(err.message);
       } finally {
         setIsLoading(false);
@@ -95,13 +106,16 @@ const Dashboard = () => {
   };
 
   const getTodayStats = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const todayData = dailySales.find(day => day.date === today);
-    const yesterdayData = dailySales.find(day => day.date === new Date(Date.now() - 86400000).toISOString().split('T')[0]);
+    const today = new Date().toISOString().split("T")[0];
+    const todayData = dailySales.find((day) => day.date === today);
+    const yesterdayData = dailySales.find(
+      (day) =>
+        day.date === new Date(Date.now() - 86400000).toISOString().split("T")[0]
+    );
 
     return {
       today: todayData || { total_amount: 0, order_count: 0 },
-      yesterday: yesterdayData || { total_amount: 0, order_count: 0 }
+      yesterday: yesterdayData || { total_amount: 0, order_count: 0 },
     };
   };
 
@@ -148,14 +162,23 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Today's Orders</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{today.order_count}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Today's Orders
+              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {today.order_count}
+              </p>
               <div className="flex items-center mt-2">
                 {orderTrend !== 0 && (
                   <>
                     {getTrendIcon(today.order_count, yesterday.order_count)}
-                    <span className={`text-sm ml-1 ${orderTrend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {Math.abs(orderTrend)} {orderTrend > 0 ? 'more' : 'less'} than yesterday
+                    <span
+                      className={`text-sm ml-1 ${
+                        orderTrend > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {Math.abs(orderTrend)} {orderTrend > 0 ? "more" : "less"}{" "}
+                      than yesterday
                     </span>
                   </>
                 )}
@@ -171,14 +194,23 @@ const Dashboard = () => {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Today's Revenue</p>
-              <p className="text-3xl font-bold text-gray-900 mt-2">{formatPrice(today.total_amount)}</p>
+              <p className="text-sm font-medium text-gray-600">
+                Today's Revenue
+              </p>
+              <p className="text-3xl font-bold text-gray-900 mt-2">
+                {formatPrice(today.total_amount)}
+              </p>
               <div className="flex items-center mt-2">
                 {amountTrend !== 0 && (
                   <>
                     {getTrendIcon(today.total_amount, yesterday.total_amount)}
-                    <span className={`text-sm ml-1 ${amountTrend > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {formatPrice(Math.abs(amountTrend))} {amountTrend > 0 ? 'more' : 'less'} than yesterday
+                    <span
+                      className={`text-sm ml-1 ${
+                        amountTrend > 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {formatPrice(Math.abs(amountTrend))}{" "}
+                      {amountTrend > 0 ? "more" : "less"} than yesterday
                     </span>
                   </>
                 )}
@@ -197,16 +229,28 @@ const Dashboard = () => {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Date
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Orders
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Total Amount
                 </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
                   Trend
                 </th>
               </tr>
@@ -224,10 +268,11 @@ const Dashboard = () => {
                     {formatPrice(day.total_amount)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {index < dailySales.length - 1 && getTrendIcon(
-                      day.order_count,
-                      dailySales[index + 1].order_count
-                    )}
+                    {index < dailySales.length - 1 &&
+                      getTrendIcon(
+                        day.order_count,
+                        dailySales[index + 1].order_count
+                      )}
                   </td>
                 </tr>
               ))}
@@ -239,4 +284,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
