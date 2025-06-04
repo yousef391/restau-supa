@@ -2,15 +2,14 @@ export interface Restaurant {
   id: string;
   name: string;
   slug: string | null;
-  logo_url: string | null;
+  logoUrl: string | null;
   description: string | null;
-  logo_url: string | null;
   banner_url: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
   opening_hours: string | null;
-  owner_id: string;
+  ownerId: string;
   created_at: string;
   updated_at: string;
 }

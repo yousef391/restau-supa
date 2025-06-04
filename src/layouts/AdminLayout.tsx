@@ -1,25 +1,26 @@
-import React from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Menu, 
-  ShoppingCart, 
+import React from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Menu,
+  ShoppingCart,
   Settings,
+  User,
   LogOut,
-  Store
-} from 'lucide-react';
-import { supabase } from '../lib/supabase';
+  Store,
+} from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 const AdminLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   const menuItems = [
-    { path: '/admin/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
-    { path: '/admin/menu', icon: Menu, label: 'Menu' },
-    { path: '/admin/orders', icon: ShoppingCart, label: 'Orders' },
-    { path: '/admin/servers', icon: Settings, label: 'Server Management' },
-    { path: '/admin/settings', icon: Settings, label: 'Settings' },
+    { path: "/admin/dashboard", icon: LayoutDashboard, label: "Dashboard" },
+    { path: "/admin/menu", icon: Menu, label: "Menu" },
+    { path: "/admin/orders", icon: ShoppingCart, label: "Orders" },
+    { path: "/admin/servers", icon: User, label: "Server Management" },
+    { path: "/admin/settings", icon: Settings, label: "Settings" },
   ];
 
   return (
@@ -34,7 +35,9 @@ const AdminLayout: React.FC = () => {
                 <Store className="w-7 h-7 text-primary-200" />
               </div>
               <div className="flex-1 min-w-0">
-                <h2 className="font-semibold text-lg truncate text-primary-50">My Restaurant</h2>
+                <h2 className="font-semibold text-lg truncate text-primary-50">
+                  My Restaurant
+                </h2>
                 <p className="text-xs text-primary-200">Admin Panel</p>
               </div>
             </div>
@@ -50,11 +53,15 @@ const AdminLayout: React.FC = () => {
                   to={item.path}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? 'bg-primary-500 text-white shadow-lg shadow-primary-500/30'
-                      : 'text-primary-100 hover:bg-primary-700/50 hover:shadow-md'
+                      ? "bg-primary-500 text-white shadow-lg shadow-primary-500/30"
+                      : "text-primary-100 hover:bg-primary-700/50 hover:shadow-md"
                   }`}
                 >
-                  <item.icon className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-primary-200'}`} />
+                  <item.icon
+                    className={`w-4 h-4 flex-shrink-0 ${
+                      isActive ? "text-white" : "text-primary-200"
+                    }`}
+                  />
                   <span className="font-medium">{item.label}</span>
                 </Link>
               );
@@ -67,9 +74,9 @@ const AdminLayout: React.FC = () => {
               onClick={async () => {
                 const { error } = await supabase.auth.signOut();
                 if (error) {
-                  console.error('Error signing out:', error);
+                  console.error("Error signing out:", error);
                 } else {
-                  navigate('/login');
+                  navigate("/login");
                 }
               }}
               className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-primary-100 hover:bg-primary-700/50 hover:shadow-md transition-all duration-200"
@@ -91,4 +98,4 @@ const AdminLayout: React.FC = () => {
   );
 };
 
-export default AdminLayout; 
+export default AdminLayout;

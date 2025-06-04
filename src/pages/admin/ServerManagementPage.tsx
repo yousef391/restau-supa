@@ -2,16 +2,15 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../contexts/AuthContext";
 import { StaffMember } from "../../types";
-
-// Placeholder for any UI components you might need (e.g., modals, forms)
-// import { Button, Input, Modal, Form } from '../components/ui';
+import { Plus } from "lucide-react";
+import Button from "../../components/ui/Button";
 
 const ServerManagementPage: React.FC = () => {
   const { user } = useAuth();
   const [servers, setServers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isAddServerModalOpen, setIsAddServerModalOpen] = useState(false);
+  const [showNewServerModal, setShowNewServerModal] = useState(false);
   const [newServerName, setNewServerName] = useState("");
   const [newServerEmail, setNewServerEmail] = useState("");
   const [newServerPassword, setNewServerPassword] = useState("");
@@ -88,22 +87,21 @@ const ServerManagementPage: React.FC = () => {
       setNewServerName("");
       setNewServerEmail("");
       setNewServerPassword("");
-      setIsAddServerModalOpen(false);
+      setShowNewServerModal(false);
       fetchServers(); // Refresh the server list
     }
     setLoading(false);
   };
+  const handleResetServerPassword = async (serverId: string) => {
+    const server = servers.find((s) => s.id === serverId);
+    if (!server) return;
 
-  const handleResetPassword = async (server: StaffMember) => {
     const newPassword = prompt(`Enter new password for ${server.email}:`);
     if (!newPassword) return;
 
     setLoading(true);
     setError(null);
 
-    // You might need a different RPC or approach for password reset
-    // This is a placeholder - password reset logic needs to be implemented securely
-    // For now, I'll use the crypt function directly, but this is NOT secure for a real application
     const { data: hashedPassword, error: hashError } = await supabase.rpc(
       "crypt",
       { password: newPassword, salt: genSalt(16) }
@@ -126,7 +124,6 @@ const ServerManagementPage: React.FC = () => {
       setError(`Failed to reset password: ${error.message}`);
     } else {
       console.log("Password reset successfully for", server.email);
-      // Optional: Fetch servers again if password reset affects display (unlikely)
     }
     setLoading(false);
   };
@@ -136,9 +133,8 @@ const ServerManagementPage: React.FC = () => {
     // In a real app, use a secure library to generate a salt
     return `rounds=${rounds}${Math.random().toString(36).substring(2)}`;
   };
-
-  const handleDeleteServer = async (server: StaffMember) => {
-    if (!confirm(`Are you sure you want to delete server ${server.email}?`)) {
+  const handleDeleteServer = async (serverId: string) => {
+    if (!confirm(`Are you sure you want to delete this server?`)) {
       return;
     }
 
@@ -148,13 +144,13 @@ const ServerManagementPage: React.FC = () => {
     const { error } = await supabase
       .from("servers")
       .delete()
-      .eq("id", server.id);
+      .eq("id", serverId);
 
     if (error) {
       console.error("Error deleting server:", error);
       setError(`Failed to delete server: ${error.message}`);
     } else {
-      console.log("Server deleted successfully:", server.email);
+      console.log("Server deleted successfully");
       fetchServers(); // Refresh the server list
     }
     setLoading(false);
@@ -162,128 +158,160 @@ const ServerManagementPage: React.FC = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Server Management</h1>
-
       {error && <div className="text-red-500 mb-4">{error}</div>}
 
-      <button
-        onClick={() => setIsAddServerModalOpen(true)}
-        className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4"
-        disabled={loading}
-      >
-        Add New Server
-      </button>
-
-      {/* Basic Server List */}
-      {loading ? (
-        <p>Loading servers...</p>
-      ) : servers.length === 0 ? (
-        <p>No servers found.</p>
-      ) : (
-        <ul className="bg-white shadow rounded-lg divide-y divide-gray-200">
-          {servers.map((server) => (
-            <li
-              key={server.id}
-              className="p-4 flex items-center justify-between"
-            >
+      {/* Server Management Section */}
+      <div className="mb-8">
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">Servers</h2>
+        <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
               <div>
-                <p className="text-gray-900 font-semibold">{server.email}</p>
+                <h4 className="text-sm font-medium text-gray-900">
+                  Manage Servers
+                </h4>
+                <p className="text-sm text-gray-500">
+                  Add and manage servers who can create orders
+                </p>
               </div>
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => handleResetPassword(server)}
-                  className="text-yellow-600 hover:text-yellow-900"
-                  disabled={loading}
-                >
-                  Reset Password
-                </button>
-                <button
-                  onClick={() => handleDeleteServer(server)}
-                  className="text-red-600 hover:text-red-900"
-                  disabled={loading}
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
+              <Button
+                variant="outline"
+                onClick={() => setShowNewServerModal(true)}
+                disabled={loading}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Server
+              </Button>
+            </div>
 
-      {/* Basic Add Server Modal (using prompt for simplicity) */}
-      {/* Replace with a proper modal component later if needed */}
-      {isAddServerModalOpen && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center">
-          <div className="relative p-5 border w-96 shadow-lg rounded-md bg-white">
-            <h3 className="text-lg font-bold mb-4">Add New Server</h3>
+            {loading ? (
+              <div className="text-center py-10">
+                <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-primary-600 mx-auto"></div>
+                <p className="mt-2 text-gray-500">Loading servers...</p>
+              </div>
+            ) : servers.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500">No servers found.</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {servers.map((server) => (
+                  <div
+                    key={server.id}
+                    className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200"
+                  >
+                    <div>
+                      <p className="font-medium">
+                        {server.name || server.email}
+                      </p>
+                      <p className="text-sm text-gray-500">{server.email}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleResetServerPassword(server.id)}
+                        disabled={loading}
+                      >
+                        Reset Password
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteServer(server.id)}
+                        disabled={loading}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Add Server Modal */}
+      {showNewServerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+              Add New Server
+            </h3>
             <form onSubmit={handleAddServer}>
-              <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="name"
-                >
-                  Name
-                </label>
-                <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="name"
-                  type="text"
-                  placeholder="Server Name"
-                  value={newServerName}
-                  onChange={(e) => setNewServerName(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="mb-4">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="email"
-                >
-                  Email
-                </label>
-                <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                  id="email"
-                  type="email"
-                  placeholder="Server Email"
-                  value={newServerEmail}
-                  onChange={(e) => setNewServerEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="mb-6">
-                <label
-                  className="block text-gray-700 text-sm font-bold mb-2"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                <input
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                  id="password"
-                  type="password"
-                  placeholder="******************"
-                  value={newServerPassword}
-                  onChange={(e) => setNewServerPassword(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <button
-                  className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                  type="submit"
-                  disabled={loading}
-                >
-                  {loading ? "Adding..." : "Add Server"}
-                </button>
-                <button
-                  className="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800"
-                  type="button"
-                  onClick={() => setIsAddServerModalOpen(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    className="block text-sm font-medium mb-1 text-gray-700"
+                    htmlFor="name"
+                  >
+                    Name
+                  </label>
+                  <input
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    id="name"
+                    type="text"
+                    placeholder="Server Name"
+                    value={newServerName}
+                    onChange={(e) => setNewServerName(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-sm font-medium mb-1 text-gray-700"
+                    htmlFor="email"
+                  >
+                    Email
+                  </label>
+                  <input
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    id="email"
+                    type="email"
+                    placeholder="Server Email"
+                    value={newServerEmail}
+                    onChange={(e) => setNewServerEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-sm font-medium mb-1 text-gray-700"
+                    htmlFor="password"
+                  >
+                    Password
+                  </label>
+                  <input
+                    className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={newServerPassword}
+                    onChange={(e) => setNewServerPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex gap-3 pt-2">
+                  <Button
+                    className="flex-1"
+                    onClick={() => {}}
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Adding..." : "Add Server"}
+                  </Button>
+                  <Button
+                    className="flex-1"
+                    variant="outline"
+                    onClick={() => setShowNewServerModal(false)}
+                    type="button"
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </form>
           </div>

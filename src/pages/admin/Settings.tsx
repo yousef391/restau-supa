@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -54,7 +55,6 @@ const Settings = () => {
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
   const [restaurantId, setRestaurantId] = useState<string | null>(null);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
-  // Define a Server type or interface if not already defined
 
   const {
     register,
@@ -130,6 +130,13 @@ const Settings = () => {
         logoUrl: restaurant.logo_url,
         description: restaurant.description,
         ownerId: restaurant.owner_id,
+        banner_url: restaurant.banner_url,
+        email: restaurant.email,
+        address: restaurant.address,
+        phone: restaurant.phone,
+        opening_hours: restaurant.opening_hours,
+        created_at: restaurant.created_at,
+        updated_at: restaurant.updated_at,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load settings");
