@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { createBrowserClient } from "@supabase/ssr";
-import { Loader2, Facebook, Instagram, MapPin, Clock } from "lucide-react";
+import { Loader2, Facebook, Instagram, MapPin } from "lucide-react";
 
 const supabase = createBrowserClient(
   import.meta.env.VITE_SUPABASE_URL,
@@ -96,14 +96,7 @@ const MenuPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-  // No cart or ordering functionality in this version
-
-  const filteredItems = menuItems.filter((item) => {
-    const matchesCategory =
-      selectedCategory === null || item.category_id === selectedCategory;
-    return matchesCategory;
-  });
+  }; // No cart or ordering functionality in this version
 
   if (loading) {
     return (
@@ -129,94 +122,74 @@ const MenuPage = () => {
     );
   }
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header with restaurant info */}
-      <header className="bg-white border-b py-4">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="flex flex-col sm:flex-row sm:items-center">
-            {restaurant.logo_url && (
-              <img
-                src={restaurant.logo_url}
-                alt={restaurant.name}
-                className="w-16 h-16 rounded-full object-cover mr-4 mb-4 sm:mb-0"
-              />
-            )}
-            <div>
-              <h1 className="text-2xl font-bold">{restaurant.name}</h1>
-              {restaurant.description && (
-                <p className="text-gray-600 text-sm mt-1">
-                  {restaurant.description}
-                </p>
-              )}
-              <div className="flex items-center mt-1 text-gray-600 text-sm">
-                <Clock className="h-4 w-4 mr-1" />
-                <span>11:00 am - 8:30 pm</span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Restaurant banner as background */}
+      <div
+        className="relative bg-cover bg-center py-8 shadow-md"
+        style={{
+          backgroundImage: restaurant.banner_url
+            ? `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url(${restaurant.banner_url})`
+            : "linear-gradient(to right, #991b1b, #7f1d1d)",
+        }}
+      >
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 flex flex-col items-center justify-center py-8">
+          {restaurant.logo_url && (
+            <img
+              src={restaurant.logo_url}
+              alt={restaurant.name}
+              className="w-24 h-24 rounded-full object-cover mb-4 border-2 border-white"
+            />
+          )}
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-white">{restaurant.name}</h1>
+            {restaurant.opening_hours && (
+              <div className="text-gray-200 mt-2">
+                <span>{restaurant.opening_hours || "11:00 am - 8:30 pm"}</span>
               </div>
-            </div>
-            <div className="sm:ml-auto mt-4 sm:mt-0">
-              {(restaurant.facebook_url ||
-                restaurant.instagram_url ||
-                restaurant.google_maps_url) && (
-                <div className="flex gap-2">
-                  {restaurant.facebook_url && (
-                    <a
-                      href={restaurant.facebook_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-blue-600 hover:text-blue-800"
-                    >
-                      <Facebook className="w-5 h-5" />
-                    </a>
-                  )}
-                  {restaurant.instagram_url && (
-                    <a
-                      href={restaurant.instagram_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-pink-600 hover:text-pink-800"
-                    >
-                      <Instagram className="w-5 h-5" />
-                    </a>
-                  )}
-                  {restaurant.google_maps_url && (
-                    <a
-                      href={restaurant.google_maps_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-2 text-red-600 hover:text-red-800"
-                    >
-                      <MapPin className="w-5 h-5" />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </header>
-
-      {/* Category Selection */}
-      <div className="bg-gray-50 sticky top-0 z-10 border-b shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="overflow-x-auto py-3">
-            <div className="flex space-x-4">
+      </div>{" "}
+      {/* Main menu content */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        {/* Menu banner with decorative elements */}
+        <div className="relative border border-gray-200 bg-white p-6 mb-8">
+          {/* Decorative corners and borders */}
+          <div className="absolute top-0 left-0 right-0 bottom-0 border-4 border-gray-200 m-4 pointer-events-none"></div>{" "}
+          {/* Menu title banner */}
+          <div className="bg-red-800 text-white py-3 text-center my-6">
+            <h1 className="text-3xl font-serif tracking-wider uppercase">
+              MENU
+            </h1>
+          </div>{" "}
+          {/* "View All" button above categories */}
+          <div className="flex justify-between items-center mb-4">
+            {/* Mobile category selector */}
+            <div className="w-full sm:w-auto"></div>
+          </div>
+          {/* Category tabs */}
+          <div className="relative mb-6">
+            <div
+              className="flex overflow-x-auto py-3 justify-start space-x-4 border-b border-gray-200 scrollbar-thin scrollbar-thumb-red-800 scrollbar-track-gray-100 pb-2"
+              style={{ scrollbarWidth: "thin" }}
+            >
               <button
-                className={`px-4 py-2 rounded-full font-medium text-sm ${
+                className={`px-4 py-1 font-medium text-sm whitespace-nowrap flex-shrink-0 ${
                   selectedCategory === null
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-700 hover:bg-gray-200"
+                    ? "text-red-800 border-b-2 border-red-800"
+                    : "text-gray-700 hover:text-red-800"
                 }`}
                 onClick={() => setSelectedCategory(null)}
               >
-                Popular Items
+                All
               </button>
               {categories.map((category) => (
                 <button
                   key={category.id}
-                  className={`px-4 py-2 rounded-full font-medium text-sm ${
+                  className={`px-4 py-1 font-medium text-sm whitespace-nowrap flex-shrink-0 ${
                     selectedCategory === category.id
-                      ? "bg-gray-900 text-white"
-                      : "text-gray-700 hover:bg-gray-200"
+                      ? "text-red-800 border-b-2 border-red-800"
+                      : "text-gray-700 hover:text-red-800"
                   }`}
                   onClick={() => setSelectedCategory(category.id)}
                 >
@@ -224,46 +197,100 @@ const MenuPage = () => {
                 </button>
               ))}
             </div>
+            {/* Scroll indicators */}
+            <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-white to-transparent pointer-events-none"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-white to-transparent pointer-events-none"></div>
           </div>
-        </div>
-      </div>
+          {/* Always show all categories, but filter if a category is selected */}
+          {categories
+            .filter(
+              (category) =>
+                // If no category selected, show all. Otherwise show only the selected category
+                selectedCategory === null || category.id === selectedCategory
+            )
+            .map((category) => {
+              const itemsInCategory = menuItems.filter(
+                (item) => item.category_id === category.id
+              );
+              if (itemsInCategory.length === 0) return null;
 
-      {/* Menu Items */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-        <h2 className="text-xl font-semibold mb-6">
-          {selectedCategory
-            ? categories.find((c) => c.id === selectedCategory)?.name
-            : "Popular Items"}
-          <span className="text-sm text-gray-500 font-normal ml-2">
-            The most commonly ordered items and dishes from this store
-          </span>
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {filteredItems.map((item) => (
-            <div key={item.id} className="flex">
-              <div className="flex-1">
-                <h3 className="font-medium text-lg mb-1">{item.name}</h3>
-                {item.description && (
-                  <p className="text-gray-600 text-sm mb-1">
-                    {item.description}
-                  </p>
-                )}
-                <p className="text-gray-900 font-medium">
-                  {item.price.toFixed(2) + " "}DZ
-                </p>
-              </div>
-              {item.image_url && (
-                <div className="ml-4">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-24 h-24 object-cover rounded-md"
-                  />
+              return (
+                <div key={category.id} className="mb-12">
+                  <div className="flex items-center mb-6">
+                    <div className="flex-grow h-0.5 bg-gray-200"></div>
+                    <h2 className="font-serif text-lg sm:text-xl px-4 sm:px-6 text-center uppercase">
+                      {category.name}
+                    </h2>
+                    <div className="flex-grow h-0.5 bg-gray-200"></div>
+                  </div>
+                  <div className="space-y-6">
+                    {itemsInCategory.map((item) => (
+                      <div key={item.id} className="flex flex-col sm:flex-row">
+                        {item.image_url && (
+                          <div className="mb-3 sm:mb-0 sm:mr-4 w-full sm:w-24 h-40 sm:h-24 flex-shrink-0">
+                            <img
+                              src={item.image_url}
+                              alt={item.name}
+                              className="w-full h-full object-cover rounded-md shadow-sm"
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1">
+                          <div className="flex items-baseline flex-wrap sm:flex-nowrap">
+                            <h3 className="font-medium mr-2 sm:mr-0">
+                              {item.name}
+                            </h3>
+                            <div className="hidden sm:block flex-grow mx-2 border-b border-dotted border-gray-300"></div>
+                            <span className="text-red-800 font-medium ml-auto sm:ml-0">
+                              {item.price.toFixed(2)} DZ
+                            </span>
+                          </div>
+                          {item.description && (
+                            <p className="text-gray-600 text-sm italic mt-1">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              )}
-            </div>
-          ))}
+              );
+            })}
+        </div>
+
+        {/* Social links */}
+        <div className="text-center mt-6 space-x-4">
+          {restaurant.facebook_url && (
+            <a
+              href={restaurant.facebook_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block p-2 text-gray-600 hover:text-blue-800"
+            >
+              <Facebook className="w-5 h-5" />
+            </a>
+          )}
+          {restaurant.instagram_url && (
+            <a
+              href={restaurant.instagram_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block p-2 text-gray-600 hover:text-pink-600"
+            >
+              <Instagram className="w-5 h-5" />
+            </a>
+          )}
+          {restaurant.google_maps_url && (
+            <a
+              href={restaurant.google_maps_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block p-2 text-gray-600 hover:text-red-600"
+            >
+              <MapPin className="w-5 h-5" />
+            </a>
+          )}
         </div>
       </div>
     </div>
