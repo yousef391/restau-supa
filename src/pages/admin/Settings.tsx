@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "../../lib/supabase";
@@ -42,6 +41,7 @@ interface RestaurantSettings {
   facebook_url: string | null;
   instagram_url: string | null;
   google_maps_url: string | null;
+  type: "restaurant" | "coffee";
 }
 
 const Settings = () => {
@@ -137,6 +137,7 @@ const Settings = () => {
         opening_hours: restaurant.opening_hours,
         created_at: restaurant.created_at,
         updated_at: restaurant.updated_at,
+        type: restaurant.type,
       });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load settings");
@@ -156,7 +157,6 @@ const Settings = () => {
       if (!restaurantId) throw new Error("Restaurant ID not found");
 
       console.log("Updating restaurant settings:", { restaurantId, data });
-
       const { data: updatedRestaurant, error } = await supabase
         .from("restaurants")
         .update({
@@ -167,6 +167,7 @@ const Settings = () => {
           facebook_url: data.facebook_url,
           instagram_url: data.instagram_url,
           google_maps_url: data.google_maps_url,
+          type: data.type,
           updated_at: new Date().toISOString(),
         })
         .eq("id", restaurantId)
@@ -607,7 +608,6 @@ const Settings = () => {
                   </p>
                 )}
               </div>
-
               <div className="space-y-2">
                 <label
                   htmlFor="email"
@@ -633,8 +633,7 @@ const Settings = () => {
                     {errors.email.message}
                   </p>
                 )}
-              </div>
-
+              </div>{" "}
               <div className="space-y-2">
                 <label
                   htmlFor="phone"
@@ -651,7 +650,30 @@ const Settings = () => {
                   {...register("phone")}
                 />
               </div>
-
+              <div className="space-y-2">
+                <label
+                  htmlFor="type"
+                  className="text-sm font-medium text-gray-700 flex items-center gap-2"
+                >
+                  <Store className="w-4 h-4 text-gray-500" />
+                  Business Type
+                </label>
+                <select
+                  id="type"
+                  className="block w-full px-4 py-2.5 bg-gray-50 border border-gray-300 rounded-lg text-gray-900 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
+                  {...register("type", {
+                    required: "Business type is required",
+                  })}
+                >
+                  <option value="restaurant">Restaurant</option>
+                  <option value="coffee">Coffee Shop</option>
+                </select>
+                {errors.type && (
+                  <p className="mt-1 text-sm text-red-600">
+                    {errors.type.message}
+                  </p>
+                )}
+              </div>
               <div className="space-y-2">
                 <label
                   htmlFor="opening_hours"

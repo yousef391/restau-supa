@@ -8,8 +8,7 @@ export type Json =
 
 export interface Database {
   public: {
-    Tables: {
-      restaurants: {
+    Tables: {      restaurants: {
         Row: {
           id: string
           created_at: string
@@ -20,6 +19,7 @@ export interface Database {
           banner_url: string | null
           owner_id: string
           updated_at: string | null
+          type: 'restaurant' | 'coffee'
         }
         Insert: {
           id?: string
@@ -31,6 +31,7 @@ export interface Database {
           banner_url?: string | null
           owner_id: string
           updated_at?: string | null
+          type?: 'restaurant' | 'coffee'
         }
         Update: {
           id?: string
@@ -42,6 +43,7 @@ export interface Database {
           banner_url?: string | null
           owner_id?: string
           updated_at?: string | null
+          type?: 'restaurant' | 'coffee'
         }
       }
       categories: {

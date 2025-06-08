@@ -39,9 +39,7 @@ const AdminDashboard = () => {
           .from('restaurants')
           .select('*')
           .eq('owner_id', user.id)
-          .single();
-        
-        if (restaurantError) throw restaurantError;
+          .single();          if (restaurantError) throw restaurantError;
         
         const restaurant: Restaurant = {
           id: restaurantData.id,
@@ -50,6 +48,11 @@ const AdminDashboard = () => {
           logoUrl: restaurantData.logo_url,
           description: restaurantData.description,
           ownerId: restaurantData.owner_id,
+          updated_at: restaurantData.updated_at,
+          type: restaurantData.type || 'restaurant'
+        };
+        
+        
         };
         
         setRestaurant(restaurant);
@@ -230,8 +233,7 @@ const AdminDashboard = () => {
               <p className="mb-4 text-gray-600">
                 Use this QR code for your restaurant. Customers can scan it to view your menu and place orders.
               </p>
-              
-              <div className="flex justify-center">
+                <div className="flex justify-center">
                 <QRCodeGenerator 
                   url={`${window.location.origin}/r/${restaurant.slug}`}
                   restaurantName={restaurant.name}
@@ -253,17 +255,15 @@ const AdminDashboard = () => {
                     <ShoppingBag size={16} className="mr-2" />
                     View Orders
                   </Button>
-                </Link>
-                <Link to="/admin/settings">
+                </Link>                <Link to="/admin/settings">
                   <Button variant="outline" className="w-full justify-start">
                     <LayoutDashboard size={16} className="mr-2" />
                     Restaurant Settings
                   </Button>
-                </Link>
-                <Link to={`/r/${restaurant.slug}`} target="_blank">
+                </Link>                <Link to={`/r/${restaurant.slug}`} target="_blank">
                   <Button variant="primary" className="w-full justify-start">
                     <QrCode size={16} className="mr-2" />
-                    View Customer Menu
+                    View {restaurant.type && restaurant.type === 'coffee' ? 'Coffee Shop' : 'Restaurant'} Menu
                   </Button>
                 </Link>
               </div>

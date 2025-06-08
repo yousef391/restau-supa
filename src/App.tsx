@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from "react-router-dom";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import NotFound from "./pages/NotFound";
@@ -8,11 +8,12 @@ import Dashboard from "./pages/admin/Dashboard";
 import MenuManagement from "./pages/admin/MenuManagement";
 import Orders from "./pages/admin/Orders";
 import Settings from "./pages/admin/Settings";
-import RestaurantPage from "./pages/RestaurantPage";
-import MenuPage from './pages/MenuPage';
-import ServerLogin from './pages/server/Login';
-import ServerDashboard from './pages/server/Dashboard';
-import ServerManagementPage from './pages/admin/ServerManagementPage';
+import MenuPage from "./pages/MenuPage";
+import ServerLogin from "./pages/server/Login";
+import ServerDashboard from "./pages/server/Dashboard";
+import ServerManagementPage from "./pages/admin/ServerManagementPage";
+import RestaurantDetailPage from "./pages/restaurant/RestaurantDetailPage";
+import CoffeePage from "./pages/coffee/CoffeePage";
 
 function App() {
   return (
@@ -20,11 +21,19 @@ function App() {
       {/* Public routes */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/restaurant/:slug" element={<RestaurantPage />} />
       <Route path="/menu/:identifier" element={<MenuPage />} />
+      {/* Type-specific routes */}
+      <Route path="/r/:slug" element={<RestaurantDetailPage />} />
+      <Route path="/c/:slug" element={<CoffeePage />} />
 
-      {/* Protected admin routes using AdminLayout */}
-      <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
         {/* Default admin route */}
         <Route index element={<Navigate to="/admin/dashboard" replace />} />
         {/* Nested admin routes */}
@@ -37,7 +46,10 @@ function App() {
 
       {/* Server Routes */}
       <Route path="/server/login" element={<ServerLogin />} />
-      <Route path="/server/:restaurantId/dashboard" element={<ServerDashboard />} />
+      <Route
+        path="/server/:restaurantId/dashboard"
+        element={<ServerDashboard />}
+      />
 
       {/* Catch all route */}
       <Route path="*" element={<NotFound />} />

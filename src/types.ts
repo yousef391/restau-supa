@@ -12,6 +12,7 @@ export interface Restaurant {
   ownerId: string;
   created_at: string;
   updated_at: string;
+  type: string | 'restaurant' | 'coffee';
 }
 
 export interface MenuItem {
@@ -69,4 +70,8 @@ export interface StaffMember {
   name: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface RestaurantType {
+  type: string | 'restaurant' | 'coffee';
 }

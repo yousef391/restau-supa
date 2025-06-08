@@ -1,4 +1,5 @@
 export type OrderStatus = 'received' | 'completed';
+export type RestaurantType = 'restaurant' | 'coffee';
 
 export interface Restaurant {
   id: string;
@@ -9,6 +10,7 @@ export interface Restaurant {
   bannerUrl: string | null;
   ownerId: string;
   updatedAt: string | null;
+  type: RestaurantType;
 }
 
 export interface Category {
